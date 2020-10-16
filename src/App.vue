@@ -1,32 +1,71 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view />
-  </div>
+  <v-app>
+    <v-app-bar app color="primary" dark>
+      <v-toolbar-title>
+        <v-btn text to="/">
+          NASA API
+        </v-btn>
+      </v-toolbar-title>
+      <v-spacer></v-spacer>
+      <div v-if="isLoggedIn">
+        <v-btn text to="/myfavorites">
+          My Favorites
+        </v-btn>
+        <v-btn text @click="signout">
+          Logout
+        </v-btn>
+      </div>
+      <div v-else>
+        <v-btn text to="login">
+          Login
+        </v-btn>
+        <v-btn text to="signup">
+          Signup
+        </v-btn>
+      </div>
+      <v-snackbar v-model="successMessage" timeout="2000" top color="green">
+        successfully logged out
+      </v-snackbar>
+      <v-snackbar v-model="errorMessage" timeout="2000" top color="red">
+        failed logged out
+      </v-snackbar>
+    </v-app-bar>
+
+    <v-main>
+      <v-container>
+        <router-view />
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script>
+import * as firebase from "firebase/app";
+import "firebase/auth";
 
-#nav {
-  padding: 30px;
-}
+export default {
+  name: "App",
+  mounted() {
+    firebase.auth().onAuthStateChanged((user) => {
+      this.isLoggedIn = !!user;
+    });
+  },
+  data: () => ({
+    isLoggedIn: false,
+    successMessage: false,
+    errorMessage: false,
+  }),
+  methods: {
+    async signout() {
+      try {
+        await firebase.auth().signOut();
+        this.successMessage = true;
 
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-#nav a.router-link-exact-active {
-  color: #42b983;
-}
-</style>
+        this.$router.replace({ name: "Home" });
+      } catch (error) {
+        this.errorMessage = true;
+      }
+    },
+  },
+};
+</script>
